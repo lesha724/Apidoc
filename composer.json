@@ -1,0 +1,33 @@
+{
+    "name": "lesha724/Apidoc",
+    "type": "library",
+    "description": "Generate documentation for php API based application. No dependency. No framework required.",
+    "keywords": ["php","api","documentation","generator"],
+    "homepage": "https://github.com/lesha724/Apidoc",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Calin Rada",
+            "email": "rada.calin@gmail.com"
+        }, 
+		{
+            "name": "Kevin Saliou",
+            "email": "kevin@saliou.name"
+        }, 
+		{
+            "name": "Borja Santos-Diez",
+            "email": "borja@santosdiez.es"
+        }, 
+		{
+            "name": "Alexey Neff",
+            "email": "neff.alexy@gmail.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {
+        "php": ">=5.3.2"
+    },
+    "autoload": {
+        "psr-0": { "lesha724": "" }
+    }
+}
