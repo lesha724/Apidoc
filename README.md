@@ -25,7 +25,7 @@ The preferred way to install this extension is through [composer](http://getcomp
 Either run
 
 ```
-php composer.phar require --prefer-dist lesha724/yii2-notification "*"
+php composer.phar require --prefer-dist lesha724/apidoc "*"
 ```
 
 or add
