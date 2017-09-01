@@ -1,5 +1,5 @@
 {
-    "name": "lesha724/Apidoc",
+    "name": "lesha724/apidoc",
     "type": "library",
     "description": "Generate documentation for php API based application. No dependency. No framework required.",
     "keywords": ["php","api","documentation","generator"],
