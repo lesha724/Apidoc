@@ -48,4 +48,9 @@ class Config
      * @var string
      **/
     public $template_path   = null;
+    /**
+     *
+     * @var array
+     */
+    public $dop_sections;
 }

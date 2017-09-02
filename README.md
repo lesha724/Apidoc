@@ -87,6 +87,7 @@ Create an apidoc.php file in your project root folder as follow:
 
 use lesha724\Apidoc\Builder;
 use lesha724\Apidoc\Exception;
+use lesha724\Apidoc\Config;
 
 $classes = array(
     'Some\Namespace\User',
@@ -96,6 +97,10 @@ $classes = array(
 $output_dir  = __DIR__.'/apidocs';
 $output_file = 'api.html'; // defaults to index.html
 $template_path = __DIR__.'/Resources/views/template/index.html';
+$dopSections = array(
+    'General' => 'General content',
+    'Other' => 'Other content'
+);
 
 try {
     $config =  new Config();
@@ -105,6 +110,7 @@ try {
     $config->st_classes = $classes;
     $config->output_file = $output_file;
     $config->template_path = $template_path;
+    $config->dop_sections = $dopSections;
 
     $builder = new Builder($config);
     $builder->generate();

@@ -52,10 +52,19 @@ class Builder
 
     protected function saveTemplate($data, $file)
     {
+        //DopSections
+        $outputDopSections = '';
+
+        if(is_array($this->_config->dop_sections)) {
+            foreach ($this->_config->dop_sections as $key => $value) {
+                $outputDopSections .= '<h2>' . $key . '</h2>' . PHP_EOL . $value;
+            }
+        }
+
         $oldContent = file_get_contents($this->_config->template_path);
 
         $tr = array(
-            '{{ content }}' => $data,
+            '{{ content }}' => implode(PHP_EOL, array($outputDopSections, $data)),
             '{{ title }}' => $this->_config->title,
             '{{ date }}'    => date('Y-m-d, H:i:s'),
             '{{ version-apidoc }}' => self::VERSION_APIDOC,
