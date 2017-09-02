@@ -15,6 +15,7 @@ use lesha724\Apidoc\Extractor,
  */
 class Builder
 {
+    const VERSION_APIDOC = '0.0.2';
     /**
      * Config for build
      * @var Config
@@ -57,7 +58,8 @@ class Builder
             '{{ content }}' => $data,
             '{{ title }}' => $this->_config->title,
             '{{ date }}'    => date('Y-m-d, H:i:s'),
-            '{{ version }}' => $this->_config->version,
+            '{{ version-apidoc }}' => self::VERSION_APIDOC,
+            '{{ version }}' => $this->_config->version
         );
         $newContent = strtr($oldContent, $tr);
 
