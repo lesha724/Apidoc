@@ -89,26 +89,6 @@
         }
     }
 
-    /*$.fn.serializeObject = function()
-    {
-        var o = {};
-        var a = this.serializeArray();
-        $.each(a, function() {
-            if(!this.value) {
-                return;
-            }
-            if (o[this.name] !== undefined) {
-                if (!o[this.name].push) {
-                    o[this.name] = [o[this.name]];
-                }
-                o[this.name].push(this.value || '');
-            } else {
-                o[this.name] = this.value || '';
-            }
-        });
-        return o;
-    };*/
-
     $(document).ready(function() {
 
         $('#php-apidoctab a').click(function(e) {
@@ -131,6 +111,10 @@
         });
 
         $("[data-toggle=popover]").popover({placement:'right'});
+
+        $(function () {
+            $('[data-toggle="tooltip"]').tooltip()
+        })
 
         $('[data-toggle=popover]').on('shown.bs.popover', function() {
             var $sample = $(this).parent().find(".popover-content"),

@@ -125,13 +125,16 @@ $ php apidoc.php
 Here is the list of methods available so far :
 
 * @ApiDescription(section="...", description="...")
-* @ApiMethod(type="(get|post|put|delete|patch")
+* @ApiMethod(type="(get|post|put|delete|patch"), needAuth="true|false")
 * @ApiRoute(name="...")
 * @ApiParams(name="...", type="...", nullable=..., description="...", [sample=".."])
 * @ApiHeaders(name="...", type="...", nullable=..., description="...")
-* @ApiReturnHeaders(sample="...")
+* @ApiReturnHeaders( description="...", sample="...")
 * @ApiReturn(type="...", sample="...")
+* @ApiReturnException(code="...", message="...")
+* @ApiObsolete(message="...", newMethod="...")
 * @ApiBody(sample="...")
+* 
 
 ### <a id="preview"></a>Preview
 

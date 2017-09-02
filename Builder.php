@@ -79,7 +79,7 @@ class Builder
     protected function generateTemplate()
     {
         $st_annotations = $this->extractAnnotations();
-
+        //var_dump($st_annotations);
         $template = array();
         $counter = 0;
         $section = null;
@@ -99,9 +99,12 @@ class Builder
 
                 $sampleOutput = $this->generateSampleOutput($docs, $counter);
 
+                list($collapseClass, $obsolete)  = $this->checkObsolete($docs);
+
                 $tr = array(
                     '{{ elt_id }}'                  => $counter,
                     '{{ method }}'                  => $this->generateBadgeForMethod($docs),
+                    '{{ lock }}'                    => $this->generateLockBadgeForMethod($docs),
                     '{{ route }}'                   => $docs['ApiRoute'][0]['name'],
                     '{{ description }}'             => $docs['ApiDescription'][0]['description'],
                     '{{ headers }}'                 => $this->generateHeadersTemplate($counter, $docs),
@@ -109,7 +112,11 @@ class Builder
                     '{{ body }}'                    => $this->generateBodyTemplate($counter, $docs),
                     //'{{ sandbox_form }}'            => $this->generateSandboxForm($docs, $counter),
                     '{{ sample_response_headers }}' => $sampleOutput[0],
-                    '{{ sample_response_body }}'    => $sampleOutput[1]
+                    '{{ sample_response_body }}'    => $sampleOutput[1],
+                    '{{ exceptions }}' => $this->generateExceptionsTemplate($counter, $docs),
+                    //obsolete
+                    '{{ collapse-class }}' => !empty($collapseClass) ? $collapseClass : 'default',
+                    '{{ obsolete }}' => $obsolete
                 );
 
                 $template[$section][] = strtr(static::$mainTpl, $tr);
@@ -256,6 +263,38 @@ class Builder
     }
 
     /**
+     * Generates the template for exceptions
+     *
+     * @param  int         $id
+     * @param  array       $st_params
+     * @return void|string
+     */
+    protected function generateExceptionsTemplate($id, $st_params)
+    {
+        if (!isset($st_params['ApiReturnException']))
+        {
+            return;
+        }
+
+        $body = array();
+        foreach ($st_params['ApiReturnException'] as $params) {
+            $tr = array(
+                '{{ code }}'        => $params['code'],
+                '{{ message }}'        => $params['message'],
+            );
+
+            $body[] = strtr(static::$exceptionContentTpl, $tr);
+        }
+
+        $html = strtr(static::$exceptionsTableTpl, array('{{ tbody }}' => implode(PHP_EOL, $body)));
+
+        return strtr(static::$panelTpl, array(
+            '{{ panelTitle }}' => 'Exceptions',
+            '{{ panelContent }}' => $html
+        ));
+    }
+
+    /**
      * Generate POST body template
      * 
      * @param  int      $id
@@ -282,44 +321,6 @@ class Builder
         ));
     }
 
-    /**
-     * Generate route paramteres form
-     *
-     * @param  array      $st_params
-     * @param  integer    $counter
-     * @return void|mixed
-     */
-    /*protected function generateSandboxForm($st_params, $counter)
-    {
-        $headers = array();
-        $params = array();
-
-        if (isset($st_params['ApiParams']) && is_array($st_params['ApiParams']))
-        {
-            foreach ($st_params['ApiParams'] as $param)
-            {
-                $params[] = strtr(static::$sandboxFormInputTpl, array('{{ name }}' => $param['name'], '{{ description }}' => $param['description'], '{{ sample }}' => $param['sample']));
-            }
-        }
-
-        if (isset($st_params['ApiHeaders']) && is_array($st_params['ApiHeaders']))
-        {
-            foreach ($st_params['ApiHeaders'] as $header)
-            {
-                $headers[] = strtr(static::$sandboxFormInputTpl, array('{{ name }}' => $header['name']));
-            }
-        }
-
-        $tr = array(
-            '{{ elt_id }}' => $counter,
-            '{{ method }}' => $st_params['ApiMethod'][0]['type'],
-            '{{ route }}'  => $st_params['ApiRoute'][0]['name'],
-            '{{ headers }}' => implode(PHP_EOL, $headers),
-            '{{ params }}'   => implode(PHP_EOL, $params),
-        );
-
-        return strtr(static::$sandboxFormTpl, $tr);
-    }*/
 
     /**
      * Generates a badge for method
@@ -340,6 +341,52 @@ class Builder
         );
 
         return '<span class="label '.$st_labels[$method].'">'.$method.'</span>';
+    }
+
+    /**
+     * Generates a lock badge for method
+     *
+     * @param  array  $data
+     * @return string
+     */
+    protected function generateLockBadgeForMethod($data)
+    {
+        if(!isset($data['ApiMethod'][0]['needAuth']))
+            return '';
+
+        $needAuth = $data['ApiMethod'][0]['needAuth'];
+
+        return $needAuth==true ?  '<div class="pull-right"><span class="label label-primary"><i class="glyphicon glyphicon-lock"></i> </span></div> ' : '';
+    }
+
+    /**
+     * Generates a lock badge for method
+     *
+     * @param  array  $data
+     * @return array()
+     */
+    protected function checkObsolete($data)
+    {
+        if(!isset($data['ApiObsolete'][0]))
+            return array('', '');
+
+        $message = $data['ApiObsolete'][0]['message'];
+
+        $newMethod = $data['ApiObsolete'][0]['newMethod'];
+
+        if(empty($message)){
+            $message = 'obsolete';
+        }
+
+        $tempalte = '<span class="label label-danger" %s >%s</span>';
+
+        return array( 'warning panel-obsolete',
+            sprintf(
+                $tempalte,
+                !empty($newMethod)? 'data-toggle="tooltip" data-placement="top" title="New method: '.$newMethod.'"' : '',
+                $message
+            )
+        );
     }
 
     /**
@@ -379,10 +426,10 @@ class Builder
      * @var string
      */
     public static $mainTpl = <<<HTML
-        <div class="panel panel-default">
+        <div class="panel panel-{{ collapse-class }}">
             <div class="panel-heading">
                 <h4 class="panel-title">
-                    {{ method }} <a data-toggle="collapse" data-parent="#accordion{{ elt_id }}" href="#collapseOne{{ elt_id }}"> {{ route }}</a>
+                  {{ obsolete }}  {{ method }} <a data-toggle="collapse" data-parent="#accordion{{ elt_id }}" href="#collapseOne{{ elt_id }}"> {{ route }} </a> {{ lock }} 
                 </h4>
             </div>
             <div id="collapseOne{{ elt_id }}" class="panel-collapse collapse">
@@ -408,27 +455,13 @@ class Builder
                             {{ body }}
                         </div><!-- #info -->
         
-                        <!--<div class="tab-pane" id="sandbox{{ elt_id }}">
-                            <div class="row">
-                                <div class="col-md-12">
-                                {{ sandbox_form }}
-                                </div>
-                                <div class="col-md-12">
-                                    Response
-                                    <hr>
-                                    <div class="col-md-12" style="overflow-x:auto">
-                                        <pre id="response_headers{{ elt_id }}"></pre>
-                                        <pre id="response{{ elt_id }}"></pre>
-                                    </div>
-                                </div>
-                            </div>
-                        </div><!-- #sandbox -->
-        
                         <div class="tab-pane" id="sample{{ elt_id }}">
                             <div class="row">
                                 <div class="col-md-12">
                                     {{ sample_response_headers }}
                                     {{ sample_response_body }}
+                                    <hr>
+                                    {{ exceptions }}
                                 </div>
                             </div>
                         </div><!-- #sample -->
@@ -485,6 +518,24 @@ HTML;
 HTML;
 
     /**
+     * exceptions template
+     * @var string
+     */
+    static $exceptionsTableTpl = <<<HTML
+        <table class="table table-hover">
+            <thead>
+            <tr>
+                <th>Code</th>
+                <th>Message</th>
+            </tr>
+            </thead>
+            <tbody>
+                {{ tbody }}
+            </tbody>
+        </table>
+HTML;
+
+    /**
      * Param template
      * @var string
      */
@@ -497,35 +548,22 @@ HTML;
         </tr>
 HTML;
 
+    /**
+     * Param template
+     * @var string
+     */
+    static $exceptionContentTpl = <<<HTML
+        <tr>
+            <td>{{ code }}</td>
+            <td>{{ message }}</td>
+        </tr>
+HTML;
+
     static $paramSampleBtnTpl = <<<HTML
         <a href="javascript:void(0);" data-toggle="popover" data-trigger="focus" data-placement="bottom" title="Sample" data-content="{{ sample }}">
             <i class="btn glyphicon glyphicon-exclamation-sign"></i>
         </a>
 HTML;
-
-    /*static $sandboxFormTpl = <<<HTML
-        <div class="col-md-6">
-            Headers
-            <hr/>
-            <div class="headers">
-            {{ headers }}
-            </div>
-        </div>
-        <div class="col-md-6">
-            <form enctype="application/x-www-form-urlencoded" role="form" action="{{ route }}" method="{{ method }}" name="form{{ elt_id }}" id="form{{ elt_id }}">
-                Parameters
-                <hr/>
-                {{ params }}
-                <button type="submit" class="btn btn-success send" rel="{{ elt_id }}">Send</button>
-            </form>
-        </div>
-HTML;*/
-
-    /*static $sandboxFormInputTpl = '
-<div class="form-group">
-<label class="control-label" for="{{ name }}">{{ name }}</label>
-<input type="text" class="form-control input-sm" id="{{ name }}" placeholder="{{ description }} - Ex: {{ sample }}" name="{{ name }}">
-</div>';*/
 
     /**
      * Panel tamplate
