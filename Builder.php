@@ -50,14 +50,20 @@ class Builder
         return end($st_output);
     }
 
-    protected function saveTemplate($data, $file)
+    protected function saveTemplate($data, $sidebar, $file)
     {
         //DopSections
         $outputDopSections = '';
 
         if(is_array($this->_config->dop_sections)) {
+            $index = 0;
             foreach ($this->_config->dop_sections as $key => $value) {
-                $outputDopSections .= '<h2>' . $key . '</h2>' . PHP_EOL . $value;
+                $outputDopSections .= strtr(static::$dopSectionTemplate, array(
+                    '{{ name }}' => $key,
+                    '{{ content }}' => $value,
+                    '{{ index }}' => $index
+                ));
+                $index++;
             }
         }
 
@@ -68,7 +74,8 @@ class Builder
             '{{ title }}' => $this->_config->title,
             '{{ date }}'    => date('Y-m-d, H:i:s'),
             '{{ version-apidoc }}' => self::VERSION_APIDOC,
-            '{{ version }}' => $this->_config->version
+            '{{ version }}' => $this->_config->version,
+            '{{ sidebar }}' => strtr(static::$sidebarTemplate, array('{{ sidebar-items }}'=>$sidebar))
         );
         $newContent = strtr($oldContent, $tr);
 
@@ -94,6 +101,8 @@ class Builder
         $template = array();
         $counter = 0;
         $section = null;
+
+        $sidebarItems = array();
 
         foreach ($st_annotations as $class => $methods) {
             foreach ($methods as $name => $docs) {
@@ -131,6 +140,9 @@ class Builder
                 );
 
                 $template[$section][] = strtr(static::$mainTpl, $tr);
+
+                $sidebarItems[$section][$counter] = $docs['ApiRoute'][0]['name'];
+
                 $counter++;
             }
         }
@@ -142,7 +154,36 @@ class Builder
           $output .= implode(PHP_EOL, $value);
         }
 
-        $this->saveTemplate($output, $this->_config->output_file);
+        $sidebar = '';
+
+
+        if(is_array($this->_config->dop_sections)) {
+            $index = 0;
+            foreach ($this->_config->dop_sections as $key => $value) {
+                $sidebar .= strtr(static::$sidebarItemTemplate, array(
+                    '{{ name }}' => $key,
+                    '{{ link }}' => 'dop-section'.$index
+                ));
+                $index++;
+            }
+        }
+
+        //var_dump($sidebarItems);
+
+        foreach ($sidebarItems as $key => $section){
+            $sidebar.= strtr(static::$sidebarSectionTemplate, array(
+                '{{ name }}' => $key
+            ));
+            foreach ($section as $_key => $item){
+                $sidebar.= strtr(static::$sidebarItemTemplate, array(
+                    '{{ name }}' => $item,
+                    '{{ link }}' => 'panel-method'.$_key
+                ));
+            }
+        }
+
+
+        $this->saveTemplate($output, $sidebar, $this->_config->output_file);
 
         return true;
     }
@@ -437,7 +478,7 @@ class Builder
      * @var string
      */
     public static $mainTpl = <<<HTML
-        <div class="panel panel-{{ collapse-class }}">
+        <div id="panel-method{{ elt_id }}" class="panel panel-{{ collapse-class }}">
             <div class="panel-heading">
                 <h4 class="panel-title">
                   {{ obsolete }}  {{ method }} <a data-toggle="collapse" data-parent="#accordion{{ elt_id }}" href="#collapseOne{{ elt_id }}"> {{ route }} </a> {{ lock }} 
@@ -586,6 +627,42 @@ HTML;
             <div class="panel-body">
             {{ panelContent }}
             </div>
+        </div>
+HTML;
+    /**
+     * sidebar template
+     * @var string
+     */
+    static $sidebarTemplate = <<<HTML
+            <nav id="scrollingNav">
+                <ul class="sidenav nav nav-list">
+                        {{ sidebar-items }}
+                </ul>
+            </nav>
+HTML;
+    /**
+     * template for item with section name (header group items)
+     * @var string
+     */
+    static $sidebarSectionTemplate = <<<HTML
+        <li class="nav-header">{{ name }}</li>
+HTML;
+    /**
+     * template for item
+     * @var string
+     */
+    static $sidebarItemTemplate = <<<HTML
+        <li><a href="#{{ link }}">{{ name }}</a>
+HTML;
+
+    /**
+     * template for dop sections
+     * @var string
+     */
+    static $dopSectionTemplate = <<<HTML
+        <div id="dop-section{{ index }}">
+            <h2>{{ name }}</h2>
+            {{ content }}
         </div>
 HTML;
 
