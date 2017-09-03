@@ -31,7 +31,7 @@ php composer.phar require --prefer-dist lesha724/apidoc "*"
 or add
 
 ```
-"lesha724/yii2-notification": "*"
+"lesha724/apidoc": "*"
 ```
 
 to the require section of your `composer.json` file.
