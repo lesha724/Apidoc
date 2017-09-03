@@ -15,7 +15,7 @@ use lesha724\Apidoc\Extractor,
  */
 class Builder
 {
-    const VERSION_APIDOC = '0.0.2';
+    const VERSION_APIDOC = '0.0.3';
     /**
      * Config for build
      * @var Config
