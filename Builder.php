@@ -15,7 +15,7 @@ use lesha724\Apidoc\Extractor,
  */
 class Builder
 {
-    const VERSION_APIDOC =  '0.0.4';
+    const VERSION_APIDOC =  '0.0.5';
     /**
      * Config for build
      * @var Config
@@ -36,6 +36,14 @@ class Builder
         }
     }
 
+    /**
+     * Get translations
+     * @param $key string
+     * @return string
+     */
+    private function _GetTranslations($key){
+        return $this->_config->GetTranslateValue($key);
+    }
     /**
      * Extract annotations
      *
@@ -78,6 +86,14 @@ class Builder
             '{{ sidebar }}' => strtr(static::$sidebarTemplate, array('{{ sidebar-items }}'=>$sidebar))
         );
         $newContent = strtr($oldContent, $tr);
+
+        foreach ($this->_config->GetTranslations() as $key => $value){
+            $newContent = strtr($newContent,
+                [
+                    '{{Lang_'.$key.'}}'=>$this->_GetTranslations($key)
+                ]
+            );
+        }
 
         if (!is_dir($this->_config->output_dir)) {
             if (!mkdir($this->_config->output_dir)) {
@@ -297,7 +313,7 @@ class Builder
             $tr = array(
                 '{{ name }}'        => $params['name'],
                 '{{ type }}'        => $params['type'],
-                '{{ nullable }}'    => @$params['nullable'] == '1' ? 'No' : 'Yes',
+                '{{ nullable }}'    => @$params['nullable'] == '1' ? '{{Lang_No}}' : '{{Lang_Yes}}',
                 '{{ description }}' => @$params['description'],
             );
             if (isset($params['sample'])) {
@@ -309,7 +325,7 @@ class Builder
         $html = strtr(static::$paramTableTpl, array('{{ tbody }}' => implode(PHP_EOL, $body)));
 
         return strtr(static::$panelTpl, array(
-            '{{ panelTitle }}' => 'Parameters',
+            '{{ panelTitle }}' => '{{Lang_Parameters}}',
             '{{ panelContent }}' => $html
         ));
     }
@@ -341,7 +357,7 @@ class Builder
         $html = strtr(static::$exceptionsTableTpl, array('{{ tbody }}' => implode(PHP_EOL, $body)));
 
         return strtr(static::$panelTpl, array(
-            '{{ panelTitle }}' => 'Exceptions',
+            '{{ panelTitle }}' => '{{Lang_Exceptions}}',
             '{{ panelContent }}' => $html
         ));
     }
@@ -368,11 +384,10 @@ class Builder
         ));
 
         return strtr(static::$panelTpl, array(
-            '{{ panelTitle }}' => 'Body',
+            '{{ panelTitle }}' => '{{Lang_Body}}',
             '{{ panelContent }}' => $html
         ));
     }
-
 
     /**
      * Generates a badge for method
@@ -427,7 +442,7 @@ class Builder
         $newMethod = $data['ApiObsolete'][0]['newMethod'];
 
         if(empty($message)){
-            $message = 'obsolete';
+            $message = '{{Lang_Obsolete}}';
         }
 
         $tempalte = '<span class="label label-danger" %s >%s</span>';
@@ -435,7 +450,7 @@ class Builder
         return array( 'warning panel-obsolete',
             sprintf(
                 $tempalte,
-                !empty($newMethod)? 'data-toggle="tooltip" data-placement="top" title="New method: '.$newMethod.'"' : '',
+                !empty($newMethod)? 'data-toggle="tooltip" data-placement="top" title="{{Lang_New method}}: '.$newMethod.'"' : '',
                 $message
             )
         );
@@ -489,9 +504,9 @@ class Builder
         
                     <!-- Nav tabs -->
                     <ul class="nav nav-tabs" id="php-apidoctab{{ elt_id }}">
-                        <li class="active"><a href="#info{{ elt_id }}" data-toggle="tab">Info</a></li>
+                        <li class="active"><a href="#info{{ elt_id }}" data-toggle="tab">{{Lang_Info}}</a></li>
                         <!--<li><a href="#sandbox{{ elt_id }}" data-toggle="tab">Sandbox</a></li>-->
-                        <li><a href="#sample{{ elt_id }}" data-toggle="tab">Sample output</a></li>
+                        <li><a href="#sample{{ elt_id }}" data-toggle="tab">{{Lang_Sample output}}</a></li>
                     </ul>
         
                     <!-- Tab panes -->
@@ -557,10 +572,10 @@ HTML;
         <table class="table table-hover">
             <thead>
             <tr>
-                <th>Name</th>
-                <th>Type</th>
-                <th>Required</th>
-                <th>Description</th>
+                <th>{{Lang_Name}}</th>
+                <th>{{Lang_Type}}</th>
+                <th>{{Lang_Required}}</th>
+                <th>{{Lang_Description}}</th>
             </tr>
             </thead>
             <tbody>
@@ -577,8 +592,8 @@ HTML;
         <table class="table table-hover">
             <thead>
             <tr>
-                <th>Code</th>
-                <th>Message</th>
+                <th>{{Lang_Code}}</th>
+                <th>{{Lang_Message}}</th>
             </tr>
             </thead>
             <tbody>

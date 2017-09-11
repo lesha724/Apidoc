@@ -11,6 +11,10 @@ namespace lesha724\Apidoc;
 class Config
 {
     /**
+     * @var Translation Преводы
+     */
+    private $_translation  = null;
+    /**
      * Version
      *
      * @var array
@@ -53,4 +57,31 @@ class Config
      * @var array
      */
     public $dop_sections;
+
+    /**
+     * Constructor
+     *
+     * @param string $language
+     */
+    public function __construct($language)
+    {
+        $this->_translation = new Translation($language);
+    }
+
+    /**
+     * get translations by key
+     * @param $key
+     * @return string
+     */
+    public function GetTranslateValue($key){
+        return $this->_translation->GetTranslateValue($key);
+    }
+
+    /**
+     * Translations array
+     * @return array|mixed
+     */
+    public function GetTranslations(){
+        return $this->_translation->GetTranslations();
+    }
 }

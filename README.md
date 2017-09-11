@@ -31,7 +31,7 @@ php composer.phar require --prefer-dist lesha724/apidoc "*"
 or add
 
 ```
-"lesha724/apidoc": "*"
+"lesha724/yii2-notification": "*"
 ```
 
 to the require section of your `composer.json` file.
@@ -103,7 +103,7 @@ $dopSections = array(
 );
 
 try {
-    $config =  new Config();
+    $config =  new Config('en');//ru|en - allowed languages
     $config->version = '0.0.1';
     $config->output_dir = $output_dir;
     $config->title = "ApiTitle";
